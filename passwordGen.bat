@@ -1,0 +1,2 @@
+node passwordGen.js
+pause
