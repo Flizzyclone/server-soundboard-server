@@ -7,6 +7,21 @@ const authDBFunctions = require('./authDB');
 const multer  = require('multer')
 const upload = multer({ dest: './data/sounds/' })
 
+router.get('/', async (req, res) => {
+    let token = req.headers.authorization.replace('Bearer ', '');
+    if (await authDBFunctions.checkBearer(token)) {
+        let userSounds = await DBFunctions.getSounds(req.headers.username);
+        if(userSounds) {
+            res.status = 200;
+            res.send({sounds: {userSounds}})
+        } else {
+            res.sendStatus(500);
+        }
+    } else {
+        res.sendStatus(401);
+    }
+});
+
 router.post('/new', upload.single('file'), async (req, res) => {
     let token = req.headers.authorization.replace('Bearer ', '');
     if (await authDBFunctions.checkBearer(token)) {

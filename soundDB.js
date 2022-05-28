@@ -69,4 +69,17 @@ async function newSound(path, user, name) {
   }
 }
 
-module.exports = { newSound };
+async function getSounds(user) {
+  try {
+    let sounds = soundDB.findAll({
+      where: {
+        user:user
+      }
+    })
+    return sounds;
+  } catch(e) {
+    return false;
+  }
+}
+
+module.exports = { newSound, getSounds };

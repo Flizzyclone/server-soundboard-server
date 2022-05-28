@@ -5,7 +5,6 @@ const bcrypt = require('bcryptjs');
 const DBFunctions = require('./authDB');
 
 router.get('/login', async (req, res) => {
-    console.log(req.headers.authorization);
     let username = req.headers.authorization.match(/[^:]*/)[0];
     username = username.replace("Basic ","").replace(" ", "");
     let pwd = req.headers.authorization.replace(/[^:]*/,"");
