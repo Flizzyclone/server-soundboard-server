@@ -69,6 +69,9 @@ function newBearer() {
 
 async function checkBearer(token) {
   let entry = await bearerDB.findByPk(token);
+  if (entry == null) {
+    return false;
+  }
   if (entry.dataValues.expiration.valueOf() > Date.now()) {
     updateBearer(token);
     return true;

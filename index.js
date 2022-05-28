@@ -1,5 +1,7 @@
 const express = require('express');
 const fs = require('fs');
+const multer = require('multer')
+const upload = multer();
 
 const http = require('http');
 
@@ -10,6 +12,7 @@ app.use(cors());
 
 // Routes
 app.use('/auth', require('./auth'));
+app.use('/sound', require('./sound'));
 
 // Listen both http & https ports
 const httpsServer = http.createServer(app);
