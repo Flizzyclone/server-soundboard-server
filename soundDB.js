@@ -1,5 +1,5 @@
 const { Sequelize } = require('sequelize');
-const crypto = require('crypto');
+const fs = require('fs');
 
 const historicaldata = new Sequelize('server', 'user', 'password', {
 	host: 'localhost',
@@ -33,14 +33,14 @@ const soundDB = historicaldata.define('sounds', {
       unique: false,
       primaryKey: false,
       allowNull: false,
-      defaultValue:"#FFFFFF"
+      defaultValue:"#121212"
     },
     imagePath: {
       type: Sequelize.STRING,
       unique: false,
       primaryKey: false,
       allowNull: false,
-      defaultValue:"images\\default.svg"
+      defaultValue:"data\\images\\default.png"
     },
     audioPath: {
       type: Sequelize.STRING,
@@ -55,7 +55,7 @@ const soundDB = historicaldata.define('sounds', {
 soundDB.sync();
 
 async function newSound(path, user, name) {
-  let id = path.replace('/data/sounds/');
+  let id = path.replace('data\\sounds\\','');
   try {
     await soundDB.create({
       audioPath: path,
@@ -69,9 +69,25 @@ async function newSound(path, user, name) {
   }
 }
 
+async function deleteSound(id) {
+  let soundEntry = await soundDB.findByPk(id);
+  if (soundEntry == null) {
+    return false;
+  } else {
+    soundDB.destroy({
+      where: {id: id}
+    });
+    fs.unlinkSync(soundEntry.dataValues.audioPath);
+    if(soundEntry.dataValues.imagePath != "data\\images\\default.png") {
+      fs.unlinkSync(soundEntry.dataValues.imagePath);
+    }
+    return true;
+  }
+}
+
 async function getSounds(user) {
   try {
-    let sounds = soundDB.findAll({
+    let sounds = await soundDB.findAll({
       where: {
         user:user
       }
@@ -82,4 +98,59 @@ async function getSounds(user) {
   }
 }
 
-module.exports = { newSound, getSounds };
+async function getSoundImage(id) {
+  let soundEntry = await soundDB.findByPk(id);
+  if (soundEntry == null) {
+    return false;
+  } else {
+    let buffer = fs.readFileSync(soundEntry.dataValues.imagePath);
+    return buffer;
+  }
+}
+
+async function getSoundAudio(id) {
+  let soundEntry = await soundDB.findByPk(id);
+  if (soundEntry == null) {
+    return false;
+  } else {
+    let buffer = fs.readFileSync(soundEntry.dataValues.audioPath);
+    return buffer;
+  }
+}
+
+async function setProp(id, prop, val) {
+  let entry = await soundDB.findByPk(id);
+  if (entry == null) {
+    return false;
+  }
+  try {
+    soundDB.update(
+      {[prop]: val},
+      {where: {id: id}}
+    )
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+async function setSoundImage(id, val) {
+  let entry = await soundDB.findByPk(id);
+  if (entry == null) {
+    return false;
+  }
+  try {
+    soundDB.update(
+      {imagePath: val},
+      {where: {id: id}}
+    )
+    if(entry.dataValues.imagePath != "data\\images\\default.png") {
+      fs.unlinkSync(entry.dataValues.imagePath);
+    }
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+module.exports = { newSound, deleteSound, getSounds, getSoundImage, getSoundAudio, setProp, setSoundImage };
